@@ -75,6 +75,28 @@ async function main() {
             // console.error(`Registered resource: ${resourceUri}`);
         }
 
+        // Register a resource that aggregates ALL documentation
+        server.resource(
+            "all-docs",
+            "gemini-docs:///all",
+            async () => {
+                const allContent: string[] = [];
+                for (const filePath of files) {
+                    const relativePath = path.relative(DOCS_ROOT, filePath);
+                    const fileContent = await fs.readFile(filePath, "utf-8");
+                    allContent.push(`# File: ${relativePath}\n\n${fileContent}`);
+                }
+                return {
+                    contents: [
+                        {
+                            uri: "gemini-docs:///all",
+                            text: allContent.join("\n\n---\n\n"),
+                        },
+                    ],
+                };
+            }
+        );
+
         // Add a search tool
         server.tool(
             "search_docs",
